@@ -21,21 +21,21 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
 # Some workaround for gcc5 support (tbc):
 SRC_URI_append = " \
-file://0001-fixup-build-with-gcc5.patch \
-file://0001-inline-use-the-gcc-inline-version-instead-of-the-c99.patch \
+	file://0001-fixup-build-with-gcc5.patch \
+	file://0001-inline-use-the-gcc-inline-version-instead-of-the-c99.patch \
 "
 
 SRC_URI_append_porter = " \
-file://0001-uboot-Silk-board-support.patch \
-file://0004-uboot-porter-board-support.patch \
-file://0005-uboot-serial-sh-SCIF-internal-clock-support.patch \
-file://0006-uboot-Silk-disable-dcache-until-fixed.patch \
+    file://0001-uboot-Silk-board-support.patch \
+    file://0004-uboot-porter-board-support.patch \
+    file://0005-uboot-serial-sh-SCIF-internal-clock-support.patch \
+    file://0006-uboot-Silk-disable-dcache-until-fixed.patch \
 "
 SRC_URI_append_silk = " \
-file://0001-uboot-Silk-board-support.patch \
-file://0004-uboot-porter-board-support.patch \
-file://0005-uboot-serial-sh-SCIF-internal-clock-support.patch \
-file://0006-uboot-Silk-disable-dcache-until-fixed.patch \
+    file://0001-uboot-Silk-board-support.patch \
+    file://0004-uboot-porter-board-support.patch \
+    file://0005-uboot-serial-sh-SCIF-internal-clock-support.patch \
+    file://0006-uboot-Silk-disable-dcache-until-fixed.patch \
 "
 
 # MiniMonitor requires u-boot.srec

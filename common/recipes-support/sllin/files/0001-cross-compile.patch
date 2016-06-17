@@ -1,0 +1,26 @@
+From c65b62a8e1b183fac9a32f7b0282b4f3156a5840 Mon Sep 17 00:00:00 2001
+From: Andrey Gusakov <andrey.gusakov@cogentembedded.com>
+Date: Tue, 19 Apr 2016 14:15:07 +0300
+Subject: [PATCH 1/2] cross-compile
+
+
+Signed-off-by: Andrey Gusakov <andrey.gusakov@cogentembedded.com>
+---
+ sllin/Makefile |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/sllin/Makefile b/sllin/Makefile
+index 8ae7510..23caf8e 100644
+--- a/sllin/Makefile
++++ b/sllin/Makefile
+@@ -1,7 +1,5 @@
+ obj-m += sllin.o
+-KPATH=/lib/modules/$(shell uname -r)/build
+-#KPATH=/mnt/data/_dokumenty_/_w_/_dce_can_/src/can-benchmark/kernel/build/shark/3.0.4
+-#KPATH=/mnt/data/_dokumenty_/_w_/_dce_can_/src/can-benchmark/kernel/build/shark/2.6.36
++#KPATH=/lib/modules/$(shell uname -r)/build
+
+ all:
+	make -C ${KPATH} M=$(PWD) modules
+--
+1.7.10.4

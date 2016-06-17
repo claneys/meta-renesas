@@ -1,0 +1,40 @@
+From 79fa7985df1f77a34d03188f1251fb7aa8efce0c Mon Sep 17 00:00:00 2001
+From: Andrey Gusakov <andrey.gusakov@cogentembedded.com>
+Date: Tue, 19 Apr 2016 15:38:29 +0300
+Subject: [PATCH 2/2] fix termios struct access
+
+
+Signed-off-by: Andrey Gusakov <andrey.gusakov@cogentembedded.com>
+---
+ sllin/sllin.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/sllin/sllin.c b/sllin/sllin.c
+index b97219e..54aff92 100644
+--- a/sllin/sllin.c
++++ b/sllin/sllin.c
+@@ -210,17 +210,17 @@ static int sltty_change_speed(struct tty_struct *tty, unsigned speed)
+
+	mutex_lock(&tty->termios_mutex);
+
+-	old_termios = *(tty->termios);
++	old_termios = tty->termios;
+
+	cflag = CS8 | CREAD | CLOCAL | HUPCL;
+	cflag &= ~(CBAUD | CIBAUD);
+	cflag |= BOTHER;
+-	tty->termios->c_cflag = cflag;
+-	tty->termios->c_oflag = 0;
+-	tty->termios->c_lflag = 0;
++	tty->termios.c_cflag = cflag;
++	tty->termios.c_oflag = 0;
++	tty->termios.c_lflag = 0;
+
+	/* Enable interrupt when UART-Break or Framing error received */
+-	tty->termios->c_iflag = BRKINT | INPCK;
++	tty->termios.c_iflag = BRKINT | INPCK;
+
+	tty_encode_baud_rate(tty, speed, speed);
+
+--
+1.7.10.4

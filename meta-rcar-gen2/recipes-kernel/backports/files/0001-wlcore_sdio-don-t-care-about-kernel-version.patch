@@ -1,0 +1,25 @@
+From a5f886eeda9163d65485af62e095c6e4dc2cbd45 Mon Sep 17 00:00:00 2001
+From: Andrey Gusakov <andrey.gusakov@cogentembedded.com>
+Date: Tue, 19 Apr 2016 13:06:37 +0300
+Subject: [PATCH 1/4] wlcore_sdio: don't care about kernel version
+
+
+Signed-off-by: Andrey Gusakov <andrey.gusakov@cogentembedded.com>
+---
+ drivers/net/wireless/ti/wlcore/Kconfig |    1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/net/wireless/ti/wlcore/Kconfig b/drivers/net/wireless/ti/wlcore/Kconfig
+index 09bb747..37dbb1c 100644
+--- a/drivers/net/wireless/ti/wlcore/Kconfig
++++ b/drivers/net/wireless/ti/wlcore/Kconfig
+@@ -26,7 +26,6 @@ config WLCORE_SPI
+   	  Say N if unsure.
+
+ config WLCORE_SDIO
+-	depends on !KERNEL_3_15
+	tristate "TI wlcore SDIO support"
+	depends on m
+	depends on WLCORE && MMC
+--
+1.7.10.4

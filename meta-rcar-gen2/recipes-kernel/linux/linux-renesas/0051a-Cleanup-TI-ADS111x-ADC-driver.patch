@@ -1,0 +1,162 @@
+From f73d05506794b6f4090e4c5c701c2362a66b07ec Mon Sep 17 00:00:00 2001
+From: Petr Nechaev <petr.nechaev@cogentembedded.com>
+Date: Wed, 28 Oct 2015 16:24:28 +0300
+Subject: [PATCH 1/1] Cleanup TI ADS111x ADC driver
+
+* added locks for simultaneous multi-channel read
+* fixed error messages
+* converted result to signed 16-bit value
+* added safeguard against channel numbers > 7
+---
+ drivers/iio/adc/ti-ads111x.c | 96 ++++++++++++++++++++++++++++++--------------
+ 1 file changed, 66 insertions(+), 30 deletions(-)
+
+diff --git a/drivers/iio/adc/ti-ads111x.c b/drivers/iio/adc/ti-ads111x.c
+index 98a28e3e..bf91e04 100644
+--- a/drivers/iio/adc/ti-ads111x.c
++++ b/drivers/iio/adc/ti-ads111x.c
+@@ -12,7 +12,6 @@
+ #include <linux/delay.h>
+
+ #include <linux/iio/iio.h>
+-#include <linux/regulator/consumer.h>
+
+ #define REG_CONV_RES		0x00
+ #define REG_CONFIG		0x01
+@@ -22,7 +21,7 @@
+ /* CONFIG reg bits */
+ /* w: begin sigle conversion; r: operation status */
+ #define CONFIG_OS		(1 << 15)
+-#define CONFIG_CH(n)		(n << 12)
++#define CONFIG_CH(n)		((n & 0x7) << 12)
+ /* ADS1114/5 only */
+ #define CONFIG_PGA_6144		(0 << 9)
+ #define CONFIG_PGA_4096		(1 << 9)
+@@ -80,7 +79,7 @@ enum ads1115_modes {
+ 		.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
+ 		.datasheet_name = "AIN"#num,				\
+ 		.scan_type = {						\
+-			.sign = 'u',					\
++			.sign = 's',					\
+ 			.realbits = 16,					\
+ 			.storagebits = 16,				\
+ 			.endianness = IIO_BE,				\
+@@ -100,7 +99,7 @@ enum ads1115_modes {
+ 		.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
+ 		.datasheet_name = "AIN"#num"-AIN"#num2,			\
+ 		.scan_type = {						\
+-			.sign = 'u',					\
++			.sign = 's',					\
+ 			.realbits = 16,					\
+ 			.storagebits = 16,				\
+ 			.endianness = IIO_BE,				\
+@@ -120,45 +119,81 @@ static const struct iio_chan_spec ads111x_channels[] = {
+ 	ADS1115_CHAN_U(3, p3),
+ };
+
+-static int ads111x_read_raw(struct iio_dev *iio,
+-			    struct iio_chan_spec const *channel, int *value,
+-			    int *shift, long mask)
++static int ads111x_read_single_channel(struct iio_dev *iio,
++				       struct iio_chan_spec const *channel,
++				       int *value)
+ {
+-	struct ads111x *adc = iio_priv(iio);
+ 	u16 config_reg;
+-	int err;
++	int ret;
++	int iter;
++	struct ads111x *adc = iio_priv(iio);
+
+-	switch (mask) {
+-	case IIO_CHAN_INFO_RAW:
+-		config_reg =
++	mutex_lock(&iio->mlock);
++
++	/* start the conversion */
++	config_reg =
+ 			CONFIG_OS |
+ 			CONFIG_CH(channel->address) |
+ 			CONFIG_PGA_2048 |
+ 			CONFIG_MODE_SINGLE |
+ 			CONFIG_DR_860SPS |
+ 			CONFIG_COMP_QUE_DIS;
+-		err = i2c_smbus_write_word_swapped(adc->i2c, REG_CONFIG, config_reg);
+-		if (err < 0) {
+-			dev_err(&iio->dev, "REG_CONFIG write err %d\n", err);
+-			return err;
+-		}
+-		mdelay(1);
+-		err = i2c_smbus_read_word_swapped(adc->i2c, REG_CONFIG);
+-		if (err < 0) {
+-			dev_err(&iio->dev, "REG_CONFIG read err %d\n", err);
+-			return err;
++	ret = i2c_smbus_write_word_swapped(adc->i2c, REG_CONFIG, config_reg);
++	if (ret < 0) {
++		dev_err(&iio->dev, "Error writing to REG_CONFIG %d\n", ret);
++		goto error_ret;
++	}
++
++	for (iter = 0; iter < 2; iter++)
++	{
++		/* wait for conversion to complete */
++		ret = msleep_interruptible(2);
++		if (ret < 0)
++			goto error_ret;
++
++		/* read status */
++		ret = i2c_smbus_read_word_swapped(adc->i2c, REG_CONFIG);
++		if (ret < 0) {
++			dev_err(&iio->dev, "Error reading REG_CONFIG %d\n", ret);
++			goto error_ret;
+ 		}
+-		if (err & CONFIG_OS) {
+-			dev_err(&iio->dev, "ADC not ready 0x%04x\n", err);
+-			return -EBUSY;
++		if ((ret & CONFIG_OS) != CONFIG_OS) {
++			dev_err(&iio->dev, "ADC not ready 0x%04x\n", ret);
++			ret = -EBUSY;
++			continue;
+ 		}
+-		err = i2c_smbus_read_word_swapped(adc->i2c, REG_CONV_RES);
+-		if (err < 0) {
+-			dev_err(&iio->dev, "REG_CONV_RES read err %d\n", err);
++	}
++	if (ret < 0)
++		goto error_ret;
++
++	/* read value */
++	ret = i2c_smbus_read_word_swapped(adc->i2c, REG_CONV_RES);
++	if (ret < 0) {
++		dev_err(&iio->dev, "Error reading REG_CONV_RES %d\n", ret);
++		goto error_ret;
++	}
++
++	*value = (s16) (ret & 0xFFFF);
++	ret = 1;
++
++error_ret:
++	mutex_unlock(&iio->mlock);
++	return ret;
++
++}
++
++static int ads111x_read_raw(struct iio_dev *iio,
++			    struct iio_chan_spec const *channel, int *value,
++			    int *shift, long mask)
++{
++	int err;
++
++	switch (mask) {
++	case IIO_CHAN_INFO_RAW:
++		err = ads111x_read_single_channel(iio, channel, value);
++		if (err < 0)
+ 			return err;
+-		}
+
+-		*value = err;
+ 		return IIO_VAL_INT;
+
+ 	case IIO_CHAN_INFO_SCALE:
+--
+2.4.3

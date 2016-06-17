@@ -171,9 +171,52 @@ SRC_URI_append_lcb = " \
     file://0038-sh-eth-Add-fixed-link-support.patch \
     file://0039-spi-sh-msiof-fix-incorrect-udelay.patch \
     file://0040-can-rcar_can-add-enable-and-standby-control-pins.patch \
+    file://0049-Add-lsm9ds0-acc-gyro-mag-driver.patch \
+    file://0051-TI-ADS111X-sigma-delta-ADC-driver.patch \
+    file://0051a-Cleanup-TI-ADS111x-ADC-driver.patch \
+    file://0059-crypto-aead-Add-crypto_aead_set_reqsize-helper.patch \
+    file://sh-sci/0014-serial-sh-sci-Break-out-default-CTS-RTS-pin-setup.patch \
+    file://sh-sci/0015-serial-sh-sci-Fix-default-RTS-handling.patch \
+    file://sh-sci/0016-serial-sh-sci-Expose-default-CTS-pin.patch \
+    file://sh-sci/0017-serial-sh-sci-Add-SCIFA-SCIFB-CTS-RTS-pin-setup.patch \
+    file://sh-sci/0018-serial-sh-sci-Expose-SCIFA-SCIFB-CTS-pin.patch \
+"
+
+
+SRC_URI_append_porter = " \
+    file://porter/0002-Porter-adapt-max9272-ov10635-driver-for-porter-exp-b.patch \
+    file://porter/0003-Porter-add-LVDS-camera.patch \
+    file://porter/0004-GPIO-CPLD-gpio-extender-driver.patch \
+    file://porter/0012-regmap-Implemented-default-cache-sync-operation.patch \
+    file://porter/0013-regmap-cache-Don-t-attempt-to-sync-non-writeable-reg.patch \
+    file://porter/0014-ASoC-Add-SOC_DOUBLE_STS-macro.patch \
+    file://porter/0015-ASoC-pcm3168a-Add-binding-document-for-pcm3168a-code.patch \
+    file://porter/0016-ASoC-pcm3168a-Add-driver-for-pcm3168a-codec.patch \
+    file://porter/0017-ASoC-PCM3168A-add-TDM-modes.patch \
+    file://porter/0018-ASoC-PCM3168A-disable-16-bit-format.patch \
+    file://porter/0019-ASoC-PCM3168A-enable-on-power-on.patch \
+    file://porter/0020-ASoC-PCM3168A-merge-ADC-and-DAC-to-single-DAI.patch \
+    file://porter/0021-ASoC-PCM3168A-disable-PM.patch \
+    file://porter/0022-ASoC-fix-simple-card-do-not-respect-device-id.patch \
+    file://porter/0023-SPI-GPIO-get-master-fix.patch \
+    file://porter/0024-SPIDEV-extend-maximum-transfer-size.patch \
+    file://porter/0025-Radio-add-si468x-to-spidev.patch \
+    file://porter/0026-ASoC-add-dummy-Si468x-driver.patch \
+    file://porter/0027-ASoC-R-Car-initial-TDM-support.patch \
+    file://porter/0028-ASoC-rcar-correct-32bit-to-24-bit-sample-conv.patch \
+    file://porter/0029-ASoC-R-Car-fix-debug-output.patch \
+    file://porter/0030-R-Car-sound-disable-clock-hack.patch \
+    file://porter/0031-ASoC-R-car-SSI-fix-SSI-slave-mode-setup-while-TDM-an.patch \
+    file://porter/0032-mmc-Add-SDIO-function-devicetree-subnode-parsing.patch \
+    file://porter/0038-Porter-LVDS-display-LQ123K1LG03.patch \
+    file://porter/0060-Remove-delay-at-LVDS-camera-initialization.patch \
+    file://porter/0099-Porter-add-separate-dts-for-ext01-extension-board.patch \
+    file://porter/0100-Porter-ext01-add-dummy-regulator-to-select-48000-sou.patch \
 "
 
 SRC_URI_append_porter = " file://porter.cfg"
+SRC_URI_append_porter = '${@ " file://porter_ext01.cfg"  if 'porter-ext01' in '${MACHINE_FEATURES}' else "" }'
+
 SRC_URI_append_stout = " file://stout.cfg"
 
 KERNEL_DEVICETREE_append_stout = '${@ \
@@ -183,6 +226,7 @@ KERNEL_DEVICETREE_append_stout = '${@ \
 	""}'
 
 KERNEL_DEVICETREE_append_porter = '${@ \
+	" ${S}/arch/arm/boot/dts/r8a7791-porter-ext01.dts " if 'porter-ext01' in '${MACHINE_FEATURES}' else \
 	" ${S}/arch/arm/boot/dts/r8a7791-porter-eavb.dts " if 'porter-tse' in '${MACHINE_FEATURES}' else \
 	""}'
 
@@ -195,3 +239,11 @@ KERNEL_DEFCONFIG = "shmobile_defconfig"
 do_configure_prepend() {
     install -m 0644 ${S}/arch/${ARCH}/configs/${KERNEL_DEFCONFIG} ${WORKDIR}/defconfig || die "No default configuration for ${MACHINE} / ${KERNEL_DEFCONFIG} available."
 }
+
+do_install_append_porter() {
+    if [ -f ${B}/arch/${ARCH}/boot/uImage+dtb ]; then
+        install -m 644 ${B}/arch/${ARCH}/boot/uImage+dtb ${D}/boot/
+    fi
+}
+
+PR="r1"

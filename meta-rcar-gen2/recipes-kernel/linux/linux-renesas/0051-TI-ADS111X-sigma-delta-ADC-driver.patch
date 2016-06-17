@@ -1,0 +1,320 @@
+From 623921d9a1815cb695b587088ea7909f2996b637 Mon Sep 17 00:00:00 2001
+From: Andrey Gusakov <andrey.gusakov@cogentembedded.com>
+Date: Fri, 18 Sep 2015 16:19:57 +0300
+Subject: [PATCH 51/52] TI ADS111X sigma-delta ADC driver
+
+
+Signed-off-by: Andrey Gusakov <andrey.gusakov@cogentembedded.com>
+---
+ drivers/iio/adc/Kconfig      |   10 ++
+ drivers/iio/adc/Makefile     |    1 +
+ drivers/iio/adc/ti-ads111x.c |  266 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 277 insertions(+)
+ create mode 100644 drivers/iio/adc/ti-ads111x.c
+
+diff --git a/drivers/iio/adc/Kconfig b/drivers/iio/adc/Kconfig
+index ab0767e6..2ad9d87 100644
+--- a/drivers/iio/adc/Kconfig
++++ b/drivers/iio/adc/Kconfig
+@@ -143,6 +143,16 @@ config TI_ADC081C
+ 	  This driver can also be built as a module. If so, the module will be
+ 	  called ti-adc081c.
+
++config TI_ADS111X
++	tristate "Texas Instruments ADS1113/4/5"
++	depends on I2C
++	help
++	  If you say yes here you get support for Texas Instruments ADS1113/4/5
++	  sigma-delta ADC chips.
++
++	  This driver can also be built as a module. If so, the module will be
++	  called ti-ads111x.
++
+ config TI_AM335X_ADC
+ 	tristate "TI's ADC driver"
+ 	depends on MFD_TI_AM335X_TSCADC
+diff --git a/drivers/iio/adc/Makefile b/drivers/iio/adc/Makefile
+index 0a825be..0a3c03f 100644
+--- a/drivers/iio/adc/Makefile
++++ b/drivers/iio/adc/Makefile
+@@ -15,5 +15,6 @@ obj-$(CONFIG_EXYNOS_ADC) += exynos_adc.o
+ obj-$(CONFIG_LP8788_ADC) += lp8788_adc.o
+ obj-$(CONFIG_MAX1363) += max1363.o
+ obj-$(CONFIG_TI_ADC081C) += ti-adc081c.o
++obj-$(CONFIG_TI_ADS111X) += ti-ads111x.o
+ obj-$(CONFIG_TI_AM335X_ADC) += ti_am335x_adc.o
+ obj-$(CONFIG_VIPERBOARD_ADC) += viperboard_adc.o
+diff --git a/drivers/iio/adc/ti-ads111x.c b/drivers/iio/adc/ti-ads111x.c
+new file mode 100644
+index 0000000..98a28e3e
+--- /dev/null
++++ b/drivers/iio/adc/ti-ads111x.c
+@@ -0,0 +1,266 @@
++/*
++ * Copyright (C) 2015 CogentEmbedded Inc
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/err.h>
++#include <linux/i2c.h>
++#include <linux/module.h>
++#include <linux/delay.h>
++
++#include <linux/iio/iio.h>
++#include <linux/regulator/consumer.h>
++
++#define REG_CONV_RES		0x00
++#define REG_CONFIG		0x01
++#define REG_LO_THRES		0x02
++#define REG_HI_THRES		0x03
++
++/* CONFIG reg bits */
++/* w: begin sigle conversion; r: operation status */
++#define CONFIG_OS		(1 << 15)
++#define CONFIG_CH(n)		(n << 12)
++/* ADS1114/5 only */
++#define CONFIG_PGA_6144		(0 << 9)
++#define CONFIG_PGA_4096		(1 << 9)
++#define CONFIG_PGA_2048		(2 << 9)	/* def */
++#define CONFIG_PGA_1024		(3 << 9)
++#define CONFIG_PGA_0512		(4 << 9)
++#define CONFIG_PGA_0256		(5 << 9)
++#define CONFIG_MODE_CONT	(0 << 8)
++#define CONFIG_MODE_SINGLE	(1 << 8)
++#define CONFIG_DR_8SPS		(0 << 5)
++#define CONFIG_DR_16SPS		(1 << 5)
++#define CONFIG_DR_32SPS		(2 << 5)
++#define CONFIG_DR_64SPS		(3 << 5)
++#define CONFIG_DR_128SPS	(4 << 5)
++#define CONFIG_DR_250SPS	(5 << 5)
++#define CONFIG_DR_475SPS	(6 << 5)
++#define CONFIG_DR_860SPS	(7 << 5)
++/* ADS1114/5 only */
++#define CONFIG_COMP_HYST	(0 << 4)
++#define CONFIG_COMP_WINDOW	(1 << 4)
++#define CONFIG_COMP_POL_LOW	(0 << 3)
++#define CONFIG_COMP_POL_HIGH	(1 << 3)
++#define CONFIG_COMP_NONLATCH	(0 << 2)
++#define CONFIG_COMP_LATCH	(1 << 2)
++#define CONFIG_COMP_QUE_1	(0 << 0)
++#define CONFIG_COMP_QUE_2	(1 << 0)
++#define CONFIG_COMP_QUE_4	(2 << 0)
++#define CONFIG_COMP_QUE_DIS	(3 << 0)
++
++struct ads111x {
++	struct i2c_client *i2c;
++	int type;
++};
++
++enum ads111x_types {
++	ads1113,
++	ads1114,
++	ads1115,
++};
++
++/* Applies to ads1115 */
++enum ads1115_modes {
++	p0n1, p0n3, p1n3, p2n3,
++	p0, p1, p2, p3
++};
++
++/* unipolar channel */
++#define ADS1115_CHAN_U(num, addr)					\
++	{								\
++		.type = IIO_VOLTAGE,					\
++		.indexed = 1,						\
++		.channel = num,						\
++		.address = addr,					\
++		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
++		.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
++		.datasheet_name = "AIN"#num,				\
++		.scan_type = {						\
++			.sign = 'u',					\
++			.realbits = 16,					\
++			.storagebits = 16,				\
++			.endianness = IIO_BE,				\
++		},							\
++	}
++
++/* bipolar channel */
++#define ADS111X_CHAN_B(num, num2, addr)					\
++	{								\
++		.type = IIO_VOLTAGE,					\
++		.differential = 1,					\
++		.indexed = 1,						\
++		.channel = num,						\
++		.channel2 = num2,					\
++		.address = addr,					\
++		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
++		.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
++		.datasheet_name = "AIN"#num"-AIN"#num2,			\
++		.scan_type = {						\
++			.sign = 'u',					\
++			.realbits = 16,					\
++			.storagebits = 16,				\
++			.endianness = IIO_BE,				\
++		},							\
++	}
++
++static const struct iio_chan_spec ads111x_channels[] = {
++	/* ADS1113/4/5 */
++	ADS111X_CHAN_B(0, 1, p0n1),
++	/* ADS1115 only */
++	ADS111X_CHAN_B(0, 3, p0n3),
++	ADS111X_CHAN_B(1, 3, p1n3),
++	ADS111X_CHAN_B(2, 3, p2n3),
++	ADS1115_CHAN_U(0, p0),
++	ADS1115_CHAN_U(1, p1),
++	ADS1115_CHAN_U(2, p2),
++	ADS1115_CHAN_U(3, p3),
++};
++
++static int ads111x_read_raw(struct iio_dev *iio,
++			    struct iio_chan_spec const *channel, int *value,
++			    int *shift, long mask)
++{
++	struct ads111x *adc = iio_priv(iio);
++	u16 config_reg;
++	int err;
++
++	switch (mask) {
++	case IIO_CHAN_INFO_RAW:
++		config_reg =
++			CONFIG_OS |
++			CONFIG_CH(channel->address) |
++			CONFIG_PGA_2048 |
++			CONFIG_MODE_SINGLE |
++			CONFIG_DR_860SPS |
++			CONFIG_COMP_QUE_DIS;
++		err = i2c_smbus_write_word_swapped(adc->i2c, REG_CONFIG, config_reg);
++		if (err < 0) {
++			dev_err(&iio->dev, "REG_CONFIG write err %d\n", err);
++			return err;
++		}
++		mdelay(1);
++		err = i2c_smbus_read_word_swapped(adc->i2c, REG_CONFIG);
++		if (err < 0) {
++			dev_err(&iio->dev, "REG_CONFIG read err %d\n", err);
++			return err;
++		}
++		if (err & CONFIG_OS) {
++			dev_err(&iio->dev, "ADC not ready 0x%04x\n", err);
++			return -EBUSY;
++		}
++		err = i2c_smbus_read_word_swapped(adc->i2c, REG_CONV_RES);
++		if (err < 0) {
++			dev_err(&iio->dev, "REG_CONV_RES read err %d\n", err);
++			return err;
++		}
++
++		*value = err;
++		return IIO_VAL_INT;
++
++	case IIO_CHAN_INFO_SCALE:
++		*value =  2048000;
++		*shift = 0;
++		return IIO_VAL_INT_PLUS_MICRO;
++
++	default:
++		break;
++	}
++
++	return -EINVAL;
++}
++
++static const struct iio_info ads111x_info = {
++	.read_raw = ads111x_read_raw,
++	.driver_module = THIS_MODULE,
++};
++
++static int ads111x_probe(struct i2c_client *client,
++			 const struct i2c_device_id *id)
++{
++	struct iio_dev *iio;
++	struct ads111x *adc;
++	int err;
++
++	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_WORD_DATA))
++		return -ENODEV;
++
++	iio = iio_device_alloc(sizeof(*adc));
++	if (!iio)
++		return -ENOMEM;
++
++	adc = iio_priv(iio);
++	adc->i2c = client;
++	adc->type = id->driver_data;
++
++	iio->dev.parent = &client->dev;
++	iio->name = dev_name(&client->dev);
++	iio->modes = INDIO_DIRECT_MODE;
++	iio->info = &ads111x_info;
++
++	iio->channels = ads111x_channels;
++	if (id->driver_data == ads1115)
++		iio->num_channels = ARRAY_SIZE(ads111x_channels);
++	else
++		iio->num_channels = 1;
++
++	err = iio_device_register(iio);
++	if (err < 0)
++		goto iio_free;
++
++	i2c_set_clientdata(client, iio);
++
++	return 0;
++
++iio_free:
++	iio_device_free(iio);
++
++	return err;
++}
++
++static int ads111x_remove(struct i2c_client *client)
++{
++	struct iio_dev *iio = i2c_get_clientdata(client);
++
++	iio_device_unregister(iio);
++	iio_device_free(iio);
++
++	return 0;
++}
++
++static const struct i2c_device_id ads111x_id[] = {
++	{ "ads1113", ads1113 },
++	{ "ads1114", ads1114 },
++	{ "ads1115", ads1115 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, ads111x_id);
++
++#ifdef CONFIG_OF
++static const struct of_device_id ads111x_of_match[] = {
++	{ .compatible = "ti,ads1113" },
++	{ .compatible = "ti,ads1114" },
++	{ .compatible = "ti,ads1115" },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, ads111x_of_match);
++#endif
++
++static struct i2c_driver ads111x_driver = {
++	.driver = {
++		.name = "ads111x",
++		.owner = THIS_MODULE,
++		.of_match_table = of_match_ptr(ads111x_of_match),
++	},
++	.probe = ads111x_probe,
++	.remove = ads111x_remove,
++	.id_table = ads111x_id,
++};
++module_i2c_driver(ads111x_driver);
++
++MODULE_AUTHOR("Andrey Gusakov <andrey.gusakov@cogentembedded.com");
++MODULE_DESCRIPTION("Texas Instruments ADS1113/4/5 driver");
++MODULE_LICENSE("GPL v2");
+--
+1.7.10.4

@@ -1,0 +1,32 @@
+From 827723430bd488d9b378ae4bfecfaa9ab198c489 Mon Sep 17 00:00:00 2001
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Date: Mon, 11 May 2015 17:47:52 +0800
+Subject: [PATCH] crypto: aead - Add crypto_aead_set_reqsize helper
+
+This patch adds the helper crypto_aead_set_reqsize so that people
+don't have to directly access the aead internals to set the reqsize.
+
+Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+Signed-off-by: Andrey Gusakov <andrey.gusakov@cogentembedded.com>
+---
+ include/crypto/internal/aead.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/include/crypto/internal/aead.h b/include/crypto/internal/aead.h
+index 2eba340..750948c 100644
+--- a/include/crypto/internal/aead.h
++++ b/include/crypto/internal/aead.h
+@@ -78,5 +78,11 @@ static inline void aead_givcrypt_complete(struct aead_givcrypt_request *req,
+ 	aead_request_complete(&req->areq, err);
+ }
+
++static inline void crypto_aead_set_reqsize(struct crypto_aead *aead,
++					   unsigned int reqsize)
++{
++	crypto_aead_crt(aead)->reqsize = reqsize;
++}
++
+ #endif	/* _CRYPTO_INTERNAL_AEAD_H */
+
+--
+1.7.10.4

@@ -1,0 +1,27 @@
+From 3ea2999a7dcde0b2596ba9499ffb10ff2215f6a3 Mon Sep 17 00:00:00 2001
+From: Andrey Vostrikov <andrey.vostrikov@cogentembedded.com>
+Date: Wed, 7 Oct 2015 11:15:27 +0300
+Subject: [PATCH] HACK: disable priority inheritance, as it causes occasional
+ crash on mutex unlock. TODO: find root cause of crash when app is terminated
+ by SIGINT and it crashes with assertion on mutex unlock with zero lock
+ counter, somewhere it was improperly unlocked or not locked
+
+---
+ m4/ax_pthread.m4 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/m4/ax_pthread.m4 b/m4/ax_pthread.m4
+index 6d400ed..c7d9cdb 100644
+--- a/m4/ax_pthread.m4
++++ b/m4/ax_pthread.m4
+@@ -274,7 +274,7 @@ if test "x$ax_pthread_ok" = xyes; then
+             ax_cv_PTHREAD_PRIO_INHERIT, [
+                 AC_LINK_IFELSE([
+                     AC_LANG_PROGRAM([[#include <pthread.h>]], [[int i = PTHREAD_PRIO_INHERIT;]])],
+-                    [ax_cv_PTHREAD_PRIO_INHERIT=yes],
++                    [ax_cv_PTHREAD_PRIO_INHERIT=no],
+                     [ax_cv_PTHREAD_PRIO_INHERIT=no])
+             ])
+         AS_IF([test "x$ax_cv_PTHREAD_PRIO_INHERIT" = "xyes"],
+--
+2.1.4

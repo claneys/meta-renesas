@@ -1,0 +1,39 @@
+From c7d9b7df9e9535271999628ef29456e41802cf6a Mon Sep 17 00:00:00 2001
+From: Andrey Vostrikov <andrey.vostrikov@cogentembedded.com>
+Date: Mon, 19 Oct 2015 15:35:13 +0300
+Subject: [PATCH] Workaround to keep clock in sync when playback is active and
+ not
+
+---
+ src/modules/alsa/alsa-sink.c   | 2 +-
+ src/modules/alsa/alsa-source.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/modules/alsa/alsa-sink.c b/src/modules/alsa/alsa-sink.c
+index ccf1137..7d674e0 100644
+--- a/src/modules/alsa/alsa-sink.c
++++ b/src/modules/alsa/alsa-sink.c
+@@ -871,7 +871,7 @@ static void update_smoother(struct userdata *u) {
+     now1 = pa_timespec_load(&htstamp);
+
+     /* Hmm, if the timestamp is 0, then it wasn't set and we take the current time */
+-    if (now1 <= 0)
++    if (1 || now1 <= 0)
+         now1 = pa_rtclock_now();
+
+     /* check if the time since the last update is bigger than the interval */
+diff --git a/src/modules/alsa/alsa-source.c b/src/modules/alsa/alsa-source.c
+index 2e93e0f..3e51e56 100644
+--- a/src/modules/alsa/alsa-source.c
++++ b/src/modules/alsa/alsa-source.c
+@@ -792,7 +792,7 @@ static void update_smoother(struct userdata *u) {
+     now1 = pa_timespec_load(&htstamp);
+
+     /* Hmm, if the timestamp is 0, then it wasn't set and we take the current time */
+-    if (now1 <= 0)
++    if (1 || now1 <= 0)
+         now1 = pa_rtclock_now();
+
+     /* check if the time since the last update is bigger than the interval */
+--
+2.1.4

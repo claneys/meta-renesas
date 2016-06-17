@@ -1,0 +1,3 @@
+Common targets are:
+    core-image-weston
+    core-image-x11

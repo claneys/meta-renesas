@@ -1,0 +1,18 @@
+#!/bin/sh
+# RST
+echo 760 > /sys/class/gpio/export
+echo out > /sys/class/gpio/gpio760/direction
+# SMODE
+echo 761 > /sys/class/gpio/export
+echo out > /sys/class/gpio/gpio761/direction
+
+#SMODE = 0
+echo 0   > /sys/class/gpio/gpio761/value
+#RST = 0
+echo 0   > /sys/class/gpio/gpio760/value
+#sleep 1
+#RST = 1
+echo 1   > /sys/class/gpio/gpio760/value
+
+echo 760 > /sys/class/gpio/unexport
+echo 761 > /sys/class/gpio/unexport

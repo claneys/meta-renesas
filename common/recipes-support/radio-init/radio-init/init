@@ -1,0 +1,26 @@
+#!/bin/sh
+#
+### BEGIN INIT INFO
+# Provides: RADIO initialization
+# Required-Start: $local_fs $remote_fs
+# Required-Stop: $local_fs $remote_fs
+# Default-Start:     2 5
+# Default-Stop:      0 1 6
+### END INIT INFO
+
+case "$1" in
+"start")
+	/usr/bin/si_init
+	/usr/bin/si_ctl -b fm
+	;;
+stop)
+	;;
+reload|restart)
+	$0 stop
+        sleep 1
+        $0 start
+	;;
+*)
+	echo "usage: $0 { start | stop | restart }"
+	;;
+esac

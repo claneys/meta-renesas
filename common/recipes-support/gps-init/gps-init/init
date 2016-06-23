@@ -1,0 +1,29 @@
+#!/bin/sh
+#
+### BEGIN INIT INFO
+# Provides: GPS initialization
+# Required-Start: $local_fs $remote_fs
+# Required-Stop: $local_fs $remote_fs
+# Default-Start:     2 5
+# Default-Stop:      0 1 6
+### END INIT INFO
+
+case "$1" in
+"start")
+	echo 764 > /sys/class/gpio/export
+	echo out > /sys/class/gpio/gpio764/direction
+	echo 1   > /sys/class/gpio/gpio764/value
+	;;
+stop)
+	echo 0   > /sys/class/gpio/gpio764/value
+	echo 764 > /sys/class/gpio/unexport
+	;;
+reload|restart)
+	$0 stop
+        sleep 1
+        $0 start
+	;;
+*)
+	echo "usage: $0 { start | stop | restart }"
+	;;
+esac

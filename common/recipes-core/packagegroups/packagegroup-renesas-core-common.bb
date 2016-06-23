@@ -45,7 +45,6 @@ BLUEZPACKAGES = "${@ '\
 
 RDEPENDS_packagegroup-renesas-core-common_append_porter = '${@ " \
     gps-init \
-    si-firmware \
     si-tools \
     linux-firmware-wl18xx \
     sllin \

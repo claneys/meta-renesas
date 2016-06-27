@@ -208,6 +208,8 @@ SRC_URI_append_porter = " \
     file://porter/0030-R-Car-sound-disable-clock-hack.patch \
     file://porter/0031-ASoC-R-car-SSI-fix-SSI-slave-mode-setup-while-TDM-an.patch \
     file://porter/0032-ASoC-rsnd-care-SWSP-bit-for-TDM-non-TDM.patch \
+    file://porter/0033-ASoC-R-car-SSI-fix-SSI-slave-mode-setup-while-TDM-an.patch \
+    file://porter/0034-ASoC-RCar-fix-capture-in-TDM-mode.patch \
     file://porter/0032-mmc-Add-SDIO-function-devicetree-subnode-parsing.patch \
     file://porter/0038-Porter-LVDS-display-LQ123K1LG03.patch \
     file://porter/0060-Remove-delay-at-LVDS-camera-initialization.patch \

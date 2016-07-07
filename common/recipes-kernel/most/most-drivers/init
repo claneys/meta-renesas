@@ -1,0 +1,33 @@
+#!/bin/sh
+#
+### BEGIN INIT INFO
+# Provides: mm
+# Required-Start: $local_fs $remote_fs
+# Required-Stop: $local_fs $remote_fs
+# Default-Start:     2 5
+# Default-Stop:      0 1 6
+### END INIT INFO
+
+case "$1" in
+"start")
+	# insert multimedia modules
+        /sbin/modprobe -q -a mostcore aim_sound aim_network aim_cdev dim2h2
+	# clock_speed (for our INIC boards):
+	# MOST  50: 1024.
+	# MOST 150: 2048.
+	# Default to 150.
+	/sbin/modprobe dim2hdm clock_speed=2048fs
+	;;
+stop)
+	# remove multimedia modules
+        /sbin/modprobe -q -r -a mostcore aim_sound aim_network aim_cdev dim2h2 dim2hdm
+	;;
+reload|restart)
+	$0 stop
+        sleep 1
+        $0 start
+	;;
+*)
+	echo "usage: $0 { start | stop | restart }"
+	;;
+esac

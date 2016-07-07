@@ -5,4 +5,5 @@ inherit packagegroup
 
 RDEPENDS_${PN} += "\
     packagegroup-renesas-core-common \
+    packagegroup-renesas-core-most \
     "

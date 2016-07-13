@@ -72,3 +72,7 @@ load-module module-remap-source source_name=BluetoothPCM_inout remix=no master=p
 ### Set default source and sink to multichannel soundcard
 set-default-sink Surround51
 set-default-source mic0
+
+.ifexists module-bluetooth-discover.so
+load-module module-bluetooth-discover
+.endif

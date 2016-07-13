@@ -1,0 +1,36 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides: bluez5
+# Default-Start:  5
+# Default-Stop:   016
+# Short-Description: run bluez5 daemon
+# Description: Linux Bluetooth stack V5 userland components..
+### END INIT INFO
+
+export PATH=/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin
+export DBUS_SESSION_BUS_ADDRESS=unix:path=/var/run/dbus/system_bus_socket
+
+test -x /usr/lib/bluez5/bluetooth/bluetoothd || exit 0
+
+case "$1" in
+    start)
+        echo -n "Starting Bluez"
+        start-stop-daemon --start --quiet --background --exec dbus-launch -- /usr/lib/bluez5/bluetooth/bluetoothd
+        echo "."
+        ;;
+    stop)
+        echo -n "Stopping Bluez"
+        start-stop-daemon --stop --retry TERM/20/KILL/5 --quiet --exec /usr/lib/bluez5/bluetooth/bluetoothd
+        echo "."
+        ;;
+    restart)
+        $0 stop
+        $0 start
+        ;;
+    *)
+        echo "Usage: /etc/init.d/bluez5 {start|stop|restart}"
+        exit 1
+        ;;
+esac
+
+exit 0

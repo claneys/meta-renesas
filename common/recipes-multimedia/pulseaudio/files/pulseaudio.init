@@ -27,11 +27,7 @@ case "$1" in
   start)
 	echo "Starting pulseaudio"
 
-	echo 765 > /sys/class/gpio/export
-	echo out > /sys/class/gpio/gpio765/direction
-	echo 1   > /sys/class/gpio/gpio765/value
-
-	start-stop-daemon -S -x pulseaudio -- -D --system --disallow-exit --disallow-module-loading --resample-method=speex-fixed-1
+	start-stop-daemon -S -x pulseaudio -- -D --system --disallow-exit --resample-method=speex-fixed-1
   ;;
 
   stop)

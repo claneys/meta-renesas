@@ -30,6 +30,7 @@ RDEPENDS_packagegroup-renesas-core-common = "\
     pulseaudio-module-cli \
     pulseaudio-module-remap-sink \
     pulseaudio-module-remap-source \
+    gstreamer1.0-plugins-good-pulse \
     alsa-plugins \
 "
 

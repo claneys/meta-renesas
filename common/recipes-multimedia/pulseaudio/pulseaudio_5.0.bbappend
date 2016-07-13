@@ -12,6 +12,7 @@ SRC_URI_append = " \
     file://hifi.conf \
     file://porter.hifi.conf \
     file://system.pa \
+    file://system-ext01.pa \
     file://daemon.conf \
     file://pcm3168a.conf \
 "
@@ -35,6 +36,11 @@ do_install_append() {
     cp -a ${WORKDIR}/hifi.conf ${D}${datadir}/alsa/ucm/rsnd-dai.0-ak4642-hifi/hifi.conf
 }
 
+PA_SYSTEM_PA = \
+    '${@ "system-ext01.pa" \
+    if 'porter-ext01' in '${MACHINE_FEATURES}' \
+    else "system.pa"}'
+
 do_install_append_porter() {
     install -d ${D}/etc/init.d
     install -d ${D}/etc/pulse
@@ -43,7 +49,7 @@ do_install_append_porter() {
 
     cp -a ${WORKDIR}/pulseaudio.init ${D}/etc/init.d/pulseaudio
 
-    cp -a ${WORKDIR}/system.pa ${D}/etc/pulse/system.pa
+    cp -a ${WORKDIR}/${PA_SYSTEM_PA} ${D}/etc/pulse/system.pa
     cp -a ${WORKDIR}/daemon.conf ${D}/etc/pulse/daemon.conf
 
     cp -a ${WORKDIR}/rsnd-dai.0-ak4642-hifi.conf ${D}${datadir}/alsa/ucm/ak464x/ak464x.conf

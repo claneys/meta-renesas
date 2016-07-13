@@ -28,6 +28,8 @@ RDEPENDS_packagegroup-renesas-core-common = "\
     pulseaudio-server \
     pulseaudio-misc \
     pulseaudio-module-cli \
+    pulseaudio-module-remap-sink \
+    pulseaudio-module-remap-source \
     alsa-plugins \
 "
 

@@ -114,6 +114,64 @@ do_configure_prepend() {
 
     # Activate CONFIG_LEGACY_PTYS
     kernel_configure_variable LEGACY_PTYS y
+    kernel_configure_variable LEGACY_PTY_COUNT 8
+
+    # needed for ttySC6 login on koelsch with systemd
+    kernel_configure_variable FHANDLE y
+
+    # needed for USB touchscreens
+    kernel_configure_variable HID_MULTITOUCH y
+
+    # additional configs needed for Genivi compliance
+    kernel_configure_variable EXPERIMENTAL y
+    kernel_configure_variable ECRYPT_FS y
+    kernel_configure_variable QUOTA y
+    kernel_configure_variable BT y
+
+    # add uinput for automated testing
+    kernel_configure_variable INPUT_MISC y
+    kernel_configure_variable INPUT_UINPUT y
+
+    # psplash only
+    kernel_configure_variable FRAMEBUFFER_CONSOLE n
+    kernel_configure_variable LOGO n
+
+    # systemd requires following
+    kernel_configure_variable AUTOFS4_FS y
+    kernel_configure_variable IPV6 y
+    kernel_configure_variable SCHEDSTATS y
+
+    # AGL spec. mentioned following
+    kernel_configure_variable EXT4_FS y
+    kernel_configure_variable FANOTIFY y
+    kernel_configure_variable POSIX_MQUEUE y
+    kernel_configure_variable TUN y
+
+    # For containers support (AGL spec v1.0, section 7.3.1)
+    kernel_configure_variable NAMESPACES y
+    kernel_configure_variable UTS_NS n
+    kernel_configure_variable IPC_NS y
+    kernel_configure_variable USER_NS y
+    kernel_configure_variable PID_NS y
+    kernel_configure_variable NET_NS y
+
+    # nbdroot support
+    kernel_configure_variable BLK_DEV_LOOP y
+    kernel_configure_variable BLK_DEV_NBD y
+    kernel_configure_variable BLK_DEV_INITRD y
+    kernel_configure_variable RD_GZIP y
+    kernel_configure_variable RD_BZIP2 y
+    kernel_configure_variable RD_XZ y
+    kernel_configure_variable EXT4_FS y
+    kernel_configure_variable EXT4_USE_FOR_EXT23 y
+    kernel_configure_variable BLK_DEV_RAM y
+    kernel_configure_variable BLK_DEV_RAM_COUNT 2
+    kernel_configure_variable BLK_DEV_RAM_SIZE 16384
+
+    # only when distro is built for debug
+    if [ "${DISTRO_TYPE}" = "debug" ]; then
+            kernel_configure_variable BLK_DEV_LOOP y
+    fi
 
     # Keep this the last line
     # Remove all modified configs and add the rest to .config
@@ -123,7 +181,44 @@ do_configure_prepend() {
     cfgs="${@" ".join(find_cfgs(d))}"
     cat ${cfgs} >> '${S}/.config'
 
-    yes '' | oe_runmake oldconfig
+    yes '' | oe_runmake -C ${S} O=${B} oldconfig
+}
+
+do_configure_bluetooth() {
+    # Needed for Bluetooth hardware support
+    kernel_configure_variable BT_HIDP y
+    kernel_configure_variable BT_HCIBTUSB m
+    kernel_configure_variable BT_BNEP m
+    kernel_configure_variable BT_BNEP_MC_FILTER y
+    kernel_configure_variable BT_BNEP_PROTO_FILTER y
+    kernel_configure_variable BT_RFCOMM m
+    kernel_configure_variable BT_RFCOMM_TTY y
+    kernel_configure_variable RFKILL m
+}
+
+do_configure_append_porter() {
+    # Enable CAN
+    kernel_configure_variable CAN y
+    kernel_configure_variable CAN_VCAN y
+    kernel_configure_variable CAN_RCAR y
+
+    yes '' | oe_runmake -C ${S} O=${B} oldconfig
+}
+
+do_configure_append_smack() {
+    # Enable Smack
+    kernel_configure_variable IP_NF_SECURITY m
+    kernel_configure_variable IP6_NF_SECURITY m
+    kernel_configure_variable EXT2_FS_SECURITY y
+    kernel_configure_variable EXT3_FS_SECURITY y
+    kernel_configure_variable EXT4_FS_SECURITY y
+    kernel_configure_variable SECURITY y
+    kernel_configure_variable SECURITY_SMACK y
+    kernel_configure_variable TMPFS_XATTR y
+
+    kernel_configure_variable DEFAULT_SECURITY "smack"
+    kernel_configure_variable DEFAULT_SECURITY_SMACK y
+    yes '' | oe_runmake -C ${S} O=${B} oldconfig
 }
 
 # Automatically depend on lzop-native if CONFIG_KERNEL_LZO is enabled

@@ -35,6 +35,7 @@ GLES = "${@base_contains('MACHINE_FEATURES', 'rgx', 'rgx', \
     base_contains('MACHINE_FEATURES', 'sgx', 'sgx', '', d), d)}"
 
 RPROVIDES_${PN} += "${GLES}-kernel-module"
+RPROVIDES_${PN} += "kernel-module-bc-example kernel-module-pvrsrvkm kernel-module-dc-linuxfb"
 
 inherit module
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
@@ -47,7 +48,8 @@ export BUILDDIR = "${STAGING_INCDIR}/.."
 export LIBSHARED = "${STAGING_LIBDIR}"
 export KERNELSRC = "${STAGING_KERNEL_DIR}"
 export CROSS_COMPILE = "${TARGET_PREFIX}"
-export KERNELDIR = "${STAGING_KERNEL_DIR}"
+STAGING_KERNEL_BUILDDIR ?= "${STAGING_KERNEL_DIR}"
+export KERNELDIR = "${STAGING_KERNEL_BUILDDIR}"
 export LDFLAGS=""
 export CP = "cp"
 

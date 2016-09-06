@@ -1,9 +1,10 @@
 include core-image-renesas-base.inc
 
 IMAGE_INSTALL_append_rcar-gen2 = '${@base_conditional("USE_GLES", "1", \
-    " libegl libegl-dev libgbm-dev", "", d)} \
-    gstreamer1.0-plugins-bad-waylandsink	 \
-	gstreamer1.0-plugins-base-app'
+    " libegl libegl-dev libgbm-dev", "", d)}'
+
+IMAGE_INSTALL_append_rcar-gen2 = ' ${@base_conditional("USE_MULTIMEDIA", "1", \
+    " gstreamer1.0-plugins-bad-waylandsink", "", d)}'
 
 # pkg groups for oss codecs
 IMAGE_INSTALL_append_lcb = ' ${@base_conditional("USE_MULTIMEDIA", "1", " \

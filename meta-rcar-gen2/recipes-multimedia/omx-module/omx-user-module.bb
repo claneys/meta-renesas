@@ -122,7 +122,6 @@ do_install() {
     make install
     cp -rf ${S}/OMXR/config/*.txt ${D}/usr/local/config/
     cp -rf ${S}/UDF_Linux/include ${D}/usr/local/include
-    cp -rf ${S}/UDF_Linux/include/*.h ${STAGING_INCDIR}
 
     cd ${S}/OMXR/lib/
 
@@ -288,7 +287,6 @@ do_install() {
         ln -sf libRSACPDAL_L.so.1.1 libRSACPDAL_L.so
         cp -P ${S}/audio_mdw/*.so* ${D}/usr/local/lib/
         cp -P ${S}/audio_mdw/RSACPD_ADL.h ${D}/usr/local/include
-        cp -P ${S}/audio_mdw/RSACPD_ADL.h ${STAGING_INCDIR}
     fi
 
     if [ "X${MP3_MDW_DECODER}" = "X1" ] ; then
@@ -297,7 +295,6 @@ do_install() {
         ln -sf libMP3DLA_L.so.1.4 libMP3DLA_L.so
         cp -P ${S}/audio_mdw/*.so* ${D}/usr/local/lib/
         cp -P ${S}/audio_mdw/mp3d_Lib.h ${D}/usr/local/include
-        cp -P ${S}/audio_mdw/mp3d_Lib.h ${STAGING_INCDIR}
     fi
 
     if [ "X${WMA_MDW_DECODER}" = "X1" ] ; then
@@ -306,7 +303,6 @@ do_install() {
         ln -sf libWMASTDLA_L.so.1.3 libWMASTDLA_L.so
         cp -P ${S}/audio_mdw/*.so* ${D}/usr/local/lib/
         cp -P ${S}/audio_mdw/wmastd_Lib.h ${D}/usr/local/include
-        cp -P ${S}/audio_mdw/wmastd_Lib.h ${STAGING_INCDIR}
     fi
 
     if [ "X${DDD_MDW_DECODER}" = "X1" ] ; then
@@ -315,7 +311,6 @@ do_install() {
         ln -sf libRSDACDLA_L.so.1.0 libRSDACDLA_L.so
         cp -P ${S}/audio_mdw/*.so* ${D}/usr/local/lib/
         cp -P ${S}/audio_mdw/RSDACD_ADL.h ${D}/usr/local/include
-        cp -P ${S}/audio_mdw/RSDACD_ADL.h ${STAGING_INCDIR}
     fi
 
     if [ "X${ALAC_MDW_DECODER}" = "X1" ] ; then
@@ -324,7 +319,6 @@ do_install() {
         ln -sf libALACDLA_L.so.1.0 libALACDLA_L.so
         cp -P ${S}/audio_mdw/*.so* ${D}/usr/local/lib/
         cp -P ${S}/audio_mdw/alacd_Lib.h ${D}/usr/local/include
-        cp -P ${S}/audio_mdw/alacd_Lib.h ${STAGING_INCDIR}
     fi
 
     if [ "X${FLAC_MDW_DECODER}" = "X1" ] ; then
@@ -333,7 +327,6 @@ do_install() {
         ln -sf libFLACDLA_L.so.1.1 libFLACDLA_L.so
         cp -P ${S}/audio_mdw/*.so* ${D}/usr/local/lib/
         cp -P ${S}/audio_mdw/flacd_Lib.h ${D}/usr/local/include
-        cp -P ${S}/audio_mdw/flacd_Lib.h ${STAGING_INCDIR}
     fi
 
     if [ "X${AAC_MDW_ENCODER}" = "X1" ] ; then
@@ -342,7 +335,6 @@ do_install() {
         ln -sf libRSAACELA_L.so.2.1 libRSAACELA_L.so
         cp -P ${S}/audio_mdw/*.so* ${D}/usr/local/lib/
         cp -P ${S}/audio_mdw/RSAACE_AAC.h ${D}/usr/local/include
-        cp -P ${S}/audio_mdw/RSAACE_AAC.h ${STAGING_INCDIR}
     fi
 
     if [ "X${AACS_MDW_DECODER}" = "X1" ] ; then
@@ -359,6 +351,7 @@ do_install() {
 SYSROOT_PREPROCESS_FUNCS += "do_populate_share_lib"
 
 do_populate_share_lib () {
+    sysroot_stage_dir ${D}/usr/local/include ${SYSROOT_DESTDIR}/usr/include
     sysroot_stage_dir ${D}/usr/local/lib ${SYSROOT_DESTDIR}/usr/lib
 }
 

@@ -1,4 +1,4 @@
-require u-boot.inc
+require recipes-bsp/u-boot/u-boot.inc
 
 # This is needs to be validated among supported BSP's before we can
 # make it default
@@ -26,15 +26,16 @@ SRC_URI_append = " \
 "
 
 SRC_URI_append_porter = " \
-    file://0001-uboot-Silk-board-support.patch \
-    file://0004-uboot-porter-board-support.patch \
-    file://0005-uboot-serial-sh-SCIF-internal-clock-support.patch \
+    file://0001-arm-rmobile-Add-SILK-board-support.patch \
+    file://0002-arm-rmobile-Add-Porter-board-support.patch \
+    file://0003-serial-serial-sh-SCIF-internal-clock-source-support.patch \
     file://0006-uboot-Silk-disable-dcache-until-fixed.patch \
 "
+
 SRC_URI_append_silk = " \
-    file://0001-uboot-Silk-board-support.patch \
-    file://0004-uboot-porter-board-support.patch \
-    file://0005-uboot-serial-sh-SCIF-internal-clock-support.patch \
+    file://0001-arm-rmobile-Add-SILK-board-support.patch \
+    file://0002-arm-rmobile-Add-Porter-board-support.patch \
+    file://0003-serial-serial-sh-SCIF-internal-clock-source-support.patch \
     file://0006-uboot-Silk-disable-dcache-until-fixed.patch \
 "
 
@@ -43,20 +44,19 @@ UBOOT_SREC ?= "u-boot.srec"
 UBOOT_SREC_SYMLINK ?= "u-boot-${MACHINE}.srec"
 UBOOT_SREC_IMAGE ?= "u-boot-${MACHINE}-${PV}-${PR}.srec"
 
-do_deploy_append() {
-install ${S}/${UBOOT_SREC} ${DEPLOYDIR}/${UBOOT_SREC_IMAGE}
 
-cd ${DEPLOYDIR}
-rm -f ${UBOOT_SREC} ${UBOOT_SREC_SYMLINK}
-ln -sf ${UBOOT_SREC_IMAGE} ${UBOOT_SREC}
-ln -sf ${UBOOT_SREC_IMAGE} ${UBOOT_SREC_SYMLINK}
-}
-
+# Redundant patch from git merge between cogent and iotbzh
+# keeping most recent
+#   iotbzh
+#    file://0001-uboot-Silk-board-support.patch 
+#    file://0004-uboot-porter-board-support.patch 
+#    file://0005-uboot-serial-sh-SCIF-internal-clock-support.patch 
+#   cogent
+#    file://0001-arm-rmobile-Add-SILK-board-support.patch 
+#    file://0002-arm-rmobile-Add-Porter-board-support.patch 
+#    file://0003-serial-serial-sh-SCIF-internal-clock-source-support.patch 
 
 SRC_URI_append_lcb = " \
-    file://0001-arm-rmobile-Add-SILK-board-support.patch \
-    file://0002-arm-rmobile-Add-Porter-board-support.patch \
-    file://0003-serial-serial-sh-SCIF-internal-clock-source-support.patch \
     file://0004-ARM-cpu-Add-ARMv7-barrier-operations-support.patch \
     file://0007-gpio-sh-pfc-fix-gpio-input-read.patch \
     file://0008-serial-serial-sh-SCIFA-interface-for-R-Car-Gen2-SoCs.patch \
@@ -64,3 +64,12 @@ SRC_URI_append_lcb = " \
     file://0010-Support-R-Car-Gen2-USB-PHY.patch \
     file://0011-enable-rmobile-usb-phy-on-silk.patch \
 "
+
+do_deploy_append() {
+	install ${S}/${UBOOT_SREC} ${DEPLOYDIR}/${UBOOT_SREC_IMAGE}
+
+	cd ${DEPLOYDIR}
+	rm -f ${UBOOT_SREC} ${UBOOT_SREC_SYMLINK}
+	ln -sf ${UBOOT_SREC_IMAGE} ${UBOOT_SREC}
+	ln -sf ${UBOOT_SREC_IMAGE} ${UBOOT_SREC_SYMLINK}
+}

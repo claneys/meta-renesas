@@ -12,6 +12,12 @@ ARM_KEEP_OABI ?= "1"
 # Quirk for udev greater or equal 141
 UDEV_GE_141 ?= "1"
 
+# Enable cgroups support for systemd
+KERNEL_ENABLE_CGROUPS ?= "1"
+
+# combine oe-core way with angstrom DISTRO_TYPE
+DISTRO_TYPE ?= "${@base_contains("IMAGE_FEATURES", "debug-tweaks", "debug", "release",d)}"
+
 # Set the verbosity of kernel messages during runtime
 # You can define CMDLINE_DEBUG in your local.conf or distro.conf to override this behaviour
 CMDLINE_DEBUG ?= '${@base_conditional("DISTRO_TYPE", "release", "quiet", "debug", d)}'
@@ -21,13 +27,14 @@ CMDLINE_append = " ${CMDLINE_DEBUG}"
 # $1 - Configure variable to be set
 # $2 - value [n/y/value]
 kernel_configure_variable() {
-    # Remove the config
-    CONF_SED_SCRIPT="$CONF_SED_SCRIPT /CONFIG_$1[ =]/d;"
-    if test "$2" = "n" ; then
-        echo "# CONFIG_$1 is not set" >> ${S}/.config
-    else
-        echo "CONFIG_$1=$2" >> ${S}/.config
-    fi
+	# Remove the config
+	CONF_SED_SCRIPT="$CONF_SED_SCRIPT /CONFIG_$1[ =]/d;"
+	if test "$2" = "n"
+	then
+		echo "# CONFIG_$1 is not set" >> ${B}/.config
+	else
+		echo "CONFIG_$1=$2" >> ${B}/.config
+	fi
 }
 
 # returns all the elements from the src uri that are .cfg files
@@ -42,7 +49,7 @@ def find_cfgs(d):
 
 do_configure_prepend() {
     # Clean .config
-    echo "" > ${S}/.config
+    echo "" > ${B}/.config
     CONF_SED_SCRIPT=""
 
     # oabi / eabi support
@@ -64,6 +71,11 @@ do_configure_prepend() {
     # Localversion
     kernel_configure_variable LOCALVERSION "\"\""
     kernel_configure_variable LOCALVERSION_AUTO n
+
+    # Distribution-dependent kernel features
+    case "${DISTRO_FEATURES}" in
+        *bluetooth*) do_configure_bluetooth
+    esac
 
     # Udev quirks
     # Newer versions of udev mandate that sysfs doesn't have deprecated entries
@@ -170,16 +182,16 @@ do_configure_prepend() {
 
     # only when distro is built for debug
     if [ "${DISTRO_TYPE}" = "debug" ]; then
-            kernel_configure_variable BLK_DEV_LOOP y
+        kernel_configure_variable BLK_DEV_LOOP y
     fi
 
     # Keep this the last line
     # Remove all modified configs and add the rest to .config
-    sed -e "${CONF_SED_SCRIPT}" < '${WORKDIR}/defconfig' >> '${S}/.config'
+    sed -e "${CONF_SED_SCRIPT}" < '${WORKDIR}/defconfig' >> '${B}/.config'
 
     # add cfgs from SRC_URI.
     cfgs="${@" ".join(find_cfgs(d))}"
-    cat ${cfgs} >> '${S}/.config'
+    cat ${cfgs} >> '${B}/.config'
 
     yes '' | oe_runmake -C ${S} O=${B} oldconfig
 }

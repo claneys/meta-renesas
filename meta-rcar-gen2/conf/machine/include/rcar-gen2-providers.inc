@@ -1,8 +1,14 @@
-# Configure for using linaro toolchain
-PREFERRED_VERSION_gcc-cross = "linaro-4.8"
-PREFERRED_VERSION_gcc-cross-initial = "linaro-4.8"
-PREFERRED_VERSION_gcc-cross-intermediate = "linaro-4.8"
-PREFERRED_VERSION_gcc-crosssdk = "linaro-4.8"
-PREFERRED_VERSION_gcc-crosssdk-initial = "linaro-4.8"
-PREFERRED_VERSION_gcc-crosssdk-intermediate = "linaro-4.8"
-PREFERRED_VERSION_gcc-cross-canadian-${TRANSLATED_TARGET_ARCH} = "linaro-4.8"
+# From Intrepid the Genivi Yocto baseline meta-ivi adopted 3.14 as the default kernel for QEMU. 
+# Override that to avoid a long list of build messages stating it is switching from 3.14 to 3.10.
+PREFERRED_VERSION_linux-yocto ?= "3.10%"
+
+# multimedia acceleration uses Gst version 1.2.x, otherwise meta-ivi currently uses 1.4.x
+require ../../../include/multimedia-control.inc
+
+PREFERRED_VERSION_gstreamer1.0 = "${@base_conditional("USE_MULTIMEDIA", "1", "1.2.%", "1.4.%", d )}"
+PREFERRED_VERSION_gstreamer1.0-omx = "${@base_conditional("USE_MULTIMEDIA", "1", "1.0.%", "1.2.%", d )}"
+PREFERRED_VERSION_gstreamer1.0-plugins-bad = '${@base_conditional("USE_MULTIMEDIA", "1", "1.2.%", "1.4.%", d )}'
+PREFERRED_VERSION_gstreamer1.0-plugins-base = '${@base_conditional("USE_MULTIMEDIA", "1", "1.2.%", "1.4.%", d )}'
+PREFERRED_VERSION_gstreamer1.0-plugins-good = '${@base_conditional("USE_MULTIMEDIA", "1", "1.2.%", "1.4.%", d )}'
+PREFERRED_VERSION_gstreamer1.0-plugins-ugly = '${@base_conditional("USE_MULTIMEDIA", "1", "1.2.%", "1.4.%", d )}'
+PREFERRED_VERSION_gstreamer1.0-libav = '${@base_conditional("USE_MULTIMEDIA", "1", "1.2.%", "1.4.%", d )}'

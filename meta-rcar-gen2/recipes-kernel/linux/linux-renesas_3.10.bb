@@ -1,5 +1,5 @@
 require linux.inc
-require linux-dtb.inc
+require recipes-kernel/linux/linux-dtb.inc
 require linux-dtb-append.inc
 require ../../include/gles-control.inc
 require ../../include/multimedia-control.inc

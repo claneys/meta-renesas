@@ -23,7 +23,7 @@ find_change_name(){
 change_names() {
 	if [ ! -e $1 ]; then
 		echo "Directory $1 not existed. Exit !"
-		exit
+		exit 1
 	fi
 	current_path=`pwd`
 	cd $1
@@ -46,36 +46,36 @@ change_names() {
 }
 
 
-MMTMP=`mktemp -d`
+TMP=`mktemp -d`
 if [ $? -ne 0 ]; then
-	echo "$0: Can't create MMTMP directory, exiting..."
+	echo "$0: Can't create TMP directory, exiting..."
 	exit 1
 fi
 
-#cp -rf $1/R-Car_Series_Evaluation_Software_Package_of_Linux_Drivers/mmp_reference_lib_v160_eva/EVARCH2M2MMPRDL001_1_6_0/RCH2M2MMPRDL001 $MMTMP
-#cp -rf $1/R-Car_Series_Evaluation_Software_Package_for_Linux/mmp_reference_lib_m2e2_v160_eva/EVARCH2M2MMPRLL001_1_6_0/RCH2M2MMPRLL001 $MMTMP
+#cp -rf $1/R-Car_Series_Evaluation_Software_Package_of_Linux_Drivers/mmp_reference_lib_v160_eva/EVARCH2M2MMPRDL001_1_6_0/RCH2M2MMPRDL001 $TMP
+#cp -rf $1/R-Car_Series_Evaluation_Software_Package_for_Linux/mmp_reference_lib_m2e2_v160_eva/EVARCH2M2MMPRLL001_1_6_0/RCH2M2MMPRLL001 $TMP
 
 MM_DRVs=`find $1 -name RCH2M2MMPRDL001 | tail -1`
-cp -rf $MM_DRVs $MMTMP
+cp -rf $MM_DRVs $TMP
 
 MM_LIBs=`find $1 -name RCH2M2MMPRLL001 | tail -1`
-cp -rf $MM_LIBs $MMTMP
+cp -rf $MM_LIBs $TMP
 
-KERNEL_MODULES="$MMTMP/RCH2M2MMPRDL001"
+KERNEL_MODULES="$TMP/RCH2M2MMPRDL001"
 tar -C $KERNEL_MODULES/fdpm/fdpm-module/files/ -jcf fdpm-kernel.tar.bz2 .
 tar -C $KERNEL_MODULES/mmngr/mmngr-module/files/ -jcf mmngr-kernel.tar.bz2 .
 tar -C $KERNEL_MODULES/mmngrbuf/mmngrbuf-module/files/ -jcf mmngrbuf-kernel.tar.bz2 .
 tar -C $KERNEL_MODULES/s3ctl/s3ctl-module/files/ -jcf s3ctl-kernel.tar.bz2 .
 tar -C $KERNEL_MODULES/vspm/vspm-module/files/ -jcf vspm-kernel.tar.bz2 .
 
-USER_MODULES="$MMTMP/RCH2M2MMPRLL001"
+USER_MODULES="$TMP/RCH2M2MMPRLL001"
 tar -C $USER_MODULES/fdpm/fdpm-module/files/ -jcf fdpm.tar.bz2 .
 tar -C $USER_MODULES/mmngr/mmngr-module/files/ -jcf mmngr.tar.bz2 .
 tar -C $USER_MODULES/mmngrbuf/mmngrbuf-module/files/ -jcf mmngrbuf.tar.bz2 .
 tar -C $USER_MODULES/s3ctl/s3ctl-module/files/ -jcf s3ctl.tar.bz2 .
 tar -C $USER_MODULES/vspm/vspm-module/files/ -jcf vspm.tar.bz2 .
 
-rm -rf $MMTMP/*
+rm -rf $TMP/*
 
 mv fdpm-kernel.tar.bz2 recipes-kernel/fdpm-module/files
 mv mmngr-kernel.tar.bz2 recipes-kernel/mmngr-module/files/mmngr.tar.bz2
@@ -103,55 +103,55 @@ OMX_DRVs=`find $1 -name omx_video_v* | tail -1`
 cp -rf $OMX_LIBs/* $OMXTMP
 cp -rf $OMX_DRVs/* $OMXTMP
 
-unzip -q -d $MMTMP $OMXTMP/EVARTM0AC0000XCMCTL20SL32C.zip
-mv $MMTMP/EVARTM0AC0000XCMCTL20SL32C $MMTMP/RTM0AC0000XCMCTL20SL32C
-tar zxf $MMTMP/RTM0AC0000XCMCTL20SL32C/Software.tar.gz -C $MMTMP/RTM0AC0000XCMCTL20SL32C/
-rm $MMTMP/RTM0AC0000XCMCTL20SL32C/Software.tar.gz
-change_names "$MMTMP/RTM0AC0000XCMCTL20SL32C"
-tar -C $MMTMP/ -jcf RTM0AC0000XCMCTL20SL32C.tar.bz2 .
-rm -rf $MMTMP/*
+unzip -q -d $TMP $OMXTMP/EVARTM0AC0000XCMCTL20SL32C.zip
+mv $TMP/EVARTM0AC0000XCMCTL20SL32C $TMP/RTM0AC0000XCMCTL20SL32C
+tar zxf $TMP/RTM0AC0000XCMCTL20SL32C/Software.tar.gz -C $TMP/RTM0AC0000XCMCTL20SL32C/
+rm $TMP/RTM0AC0000XCMCTL20SL32C/Software.tar.gz
+change_names "$TMP/RTM0AC0000XCMCTL20SL32C"
+tar -C $TMP/ -jcf RTM0AC0000XCMCTL20SL32C.tar.bz2 .
+rm -rf $TMP/*
 mv RTM0AC0000XCMCTL20SL32C.tar.bz2 recipes-multimedia/omx-module/files/
 
-unzip -q -d $MMTMP $OMXTMP/EVARTM0AC0000XV264D20SL32C.zip
-mv $MMTMP/EVARTM0AC0000XV264D20SL32C $MMTMP/RTM0AC0000XV264D20SL32C
-tar zxf $MMTMP/RTM0AC0000XV264D20SL32C/Software.tar.gz -C $MMTMP/RTM0AC0000XV264D20SL32C
-rm $MMTMP/RTM0AC0000XV264D20SL32C/Software.tar.gz
-change_names "$MMTMP/RTM0AC0000XV264D20SL32C"
-tar -C $MMTMP/ -jcf RTM0AC0000XV264D20SL32C.tar.bz2 .
-rm -rf $MMTMP/*
+unzip -q -d $TMP $OMXTMP/EVARTM0AC0000XV264D20SL32C.zip
+mv $TMP/EVARTM0AC0000XV264D20SL32C $TMP/RTM0AC0000XV264D20SL32C
+tar zxf $TMP/RTM0AC0000XV264D20SL32C/Software.tar.gz -C $TMP/RTM0AC0000XV264D20SL32C
+rm $TMP/RTM0AC0000XV264D20SL32C/Software.tar.gz
+change_names "$TMP/RTM0AC0000XV264D20SL32C"
+tar -C $TMP/ -jcf RTM0AC0000XV264D20SL32C.tar.bz2 .
+rm -rf $TMP/*
 mv RTM0AC0000XV264D20SL32C.tar.bz2 recipes-multimedia/omx-module/files/
 
-unzip -q -d $MMTMP $OMXTMP/EVARTM0AC0000XV264E20SL32C.zip
-mv $MMTMP/EVARTM0AC0000XV264E20SL32C $MMTMP/RTM0AC0000XV264E20SL32C
-tar zxf $MMTMP/RTM0AC0000XV264E20SL32C/Software.tar.gz -C $MMTMP/RTM0AC0000XV264E20SL32C
-rm $MMTMP/RTM0AC0000XV264E20SL32C/Software.tar.gz
-change_names "$MMTMP/RTM0AC0000XV264E20SL32C"
-tar -C $MMTMP/ -jcf RTM0AC0000XV264E20SL32C.tar.bz2 .
-rm -rf $MMTMP/*
+unzip -q -d $TMP $OMXTMP/EVARTM0AC0000XV264E20SL32C.zip
+mv $TMP/EVARTM0AC0000XV264E20SL32C $TMP/RTM0AC0000XV264E20SL32C
+tar zxf $TMP/RTM0AC0000XV264E20SL32C/Software.tar.gz -C $TMP/RTM0AC0000XV264E20SL32C
+rm $TMP/RTM0AC0000XV264E20SL32C/Software.tar.gz
+change_names "$TMP/RTM0AC0000XV264E20SL32C"
+tar -C $TMP/ -jcf RTM0AC0000XV264E20SL32C.tar.bz2 .
+rm -rf $TMP/*
 mv RTM0AC0000XV264E20SL32C.tar.bz2 recipes-multimedia/omx-module/files/
 
-unzip -q -d $MMTMP $OMXTMP/EVARTM0AC0000XVCMND20SL32C.zip
-mv $MMTMP/EVARTM0AC0000XVCMND20SL32C $MMTMP/RTM0AC0000XVCMND20SL32C
-tar zxf $MMTMP/RTM0AC0000XVCMND20SL32C/Software.tar.gz -C $MMTMP/RTM0AC0000XVCMND20SL32C
-rm $MMTMP/RTM0AC0000XVCMND20SL32C/Software.tar.gz
-change_names "$MMTMP/RTM0AC0000XVCMND20SL32C"
-tar -C $MMTMP/ -jcf RTM0AC0000XVCMND20SL32C.tar.bz2 .
-rm -rf $MMTMP/*
+unzip -q -d $TMP $OMXTMP/EVARTM0AC0000XVCMND20SL32C.zip
+mv $TMP/EVARTM0AC0000XVCMND20SL32C $TMP/RTM0AC0000XVCMND20SL32C
+tar zxf $TMP/RTM0AC0000XVCMND20SL32C/Software.tar.gz -C $TMP/RTM0AC0000XVCMND20SL32C
+rm $TMP/RTM0AC0000XVCMND20SL32C/Software.tar.gz
+change_names "$TMP/RTM0AC0000XVCMND20SL32C"
+tar -C $TMP/ -jcf RTM0AC0000XVCMND20SL32C.tar.bz2 .
+rm -rf $TMP/*
 mv RTM0AC0000XVCMND20SL32C.tar.bz2 recipes-multimedia/omx-module/files/
 
-unzip -q -d $MMTMP $OMXTMP/EVARTM0AC0000XVCMNE20SL32C.zip
-mv $MMTMP/EVARTM0AC0000XVCMNE20SL32C $MMTMP/RTM0AC0000XVCMNE20SL32C
-tar zxf $MMTMP/RTM0AC0000XVCMNE20SL32C/Software.tar.gz -C $MMTMP/RTM0AC0000XVCMNE20SL32C
-rm $MMTMP/RTM0AC0000XVCMNE20SL32C/Software.tar.gz
-change_names "$MMTMP/RTM0AC0000XVCMNE20SL32C"
-tar -C $MMTMP/ -jcf RTM0AC0000XVCMNE20SL32C.tar.bz2 .
-rm -rf $MMTMP/*
+unzip -q -d $TMP $OMXTMP/EVARTM0AC0000XVCMNE20SL32C.zip
+mv $TMP/EVARTM0AC0000XVCMNE20SL32C $TMP/RTM0AC0000XVCMNE20SL32C
+tar zxf $TMP/RTM0AC0000XVCMNE20SL32C/Software.tar.gz -C $TMP/RTM0AC0000XVCMNE20SL32C
+rm $TMP/RTM0AC0000XVCMNE20SL32C/Software.tar.gz
+change_names "$TMP/RTM0AC0000XVCMNE20SL32C"
+tar -C $TMP/ -jcf RTM0AC0000XVCMNE20SL32C.tar.bz2 .
+rm -rf $TMP/*
 mv RTM0AC0000XVCMNE20SL32C.tar.bz2 recipes-multimedia/omx-module/files/
 
-unzip -q -d $MMTMP $OMXTMP/RTM0AC0000UVCSCMN1SL32C.zip
-mv $MMTMP/RTM0AC0000UVCSCMN1SL32C $MMTMP/uvcs
-tar -C $MMTMP/ -jcf uvcs-kernel.tar.bz2 .
-rm -rf $MMTMP
+unzip -q -d $TMP $OMXTMP/RTM0AC0000UVCSCMN1SL32C.zip
+mv $TMP/RTM0AC0000UVCSCMN1SL32C $TMP/uvcs
+tar -C $TMP/ -jcf uvcs-kernel.tar.bz2 .
+rm -rf $TMP
 mv uvcs-kernel.tar.bz2 recipes-kernel/uvcs-module/files
 
 rm -rf $OMXTMP

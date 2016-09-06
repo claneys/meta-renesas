@@ -3434,10 +3434,10 @@ diff --git a/boards.cfg b/boards.cfg
 index 78995b7..6e15a58 100644
 --- a/boards.cfg
 +++ b/boards.cfg
-@@ -326,6 +326,11 @@ silk_extram                  arm         armv7       silk                renesas
- silk_media                   arm         armv7       silk                renesas        rmobile     silk:QOS_PRI_MEDIA
- silk_gfx                     arm         armv7       silk                renesas        rmobile     silk:QOS_PRI_GFX
- silk_vin                     arm         armv7       silk                renesas        rmobile     silk:QOS_PRI_VIN
+@@ -326,3 +326,11 @@ silk_extram                  arm         armv7       silk                renesas
++silk_media                   arm         armv7       silk                renesas        rmobile     silk:QOS_PRI_MEDIA
++silk_gfx                     arm         armv7       silk                renesas        rmobile     silk:QOS_PRI_GFX
++silk_vin                     arm         armv7       silk                renesas        rmobile     silk:QOS_PRI_VIN
 +r8a7790stout                 arm         armv7       r8a7790stout        renesas        rmobile     r8a7790stout:QOS_PRI_NORMAL
 +r8a7790stout_extram          arm         armv7       r8a7790stout        renesas        rmobile     r8a7790stout:EXTRAM_BOOT,QOS_PRI_VIN
 +r8a7790stout_media           arm         armv7       r8a7790stout        renesas        rmobile     r8a7790stout:QOS_PRI_MEDIA

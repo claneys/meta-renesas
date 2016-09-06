@@ -5,11 +5,9 @@ COMPATIBLE_MACHINE = "(alt|gose|koelsch|lager|porter|silk|stout)"
 PV_append = "+git${SRCREV}"
 
 RENESAS_BACKPORTS_URL="git://git.kernel.org/pub/scm/linux/kernel/git/horms/renesas-backport.git"
-SRCREV = "ef3cb04de0d01178a64fea73ffa4c5e21e79f310"
-SRC_URI = " \
-    ${RENESAS_BACKPORTS_URL};protocol=git;branch=bsp/v3.10.31-ltsi/rcar-gen2-1.9.4 \
-    file://scripts-Makefile.headersinst-install-headers-from-sc.patch \
-    file://0001-kernel-add-support-for-gcc-5.patch \
+SRCREV = "b8ca8c397343f4233f9f68fc3a5bf8e1c9b88251"
+SRC_URI = "${RENESAS_BACKPORTS_URL};protocol=git;branch=bsp/v3.10.31-ltsi/rcar-gen2-1.9.2 \
+          file://scripts-Makefile.headersinst-install-headers-from-sc.patch \
+          file://0001-kernel-add-support-for-gcc-5.patch \
 "
-
 S = "${WORKDIR}/git"

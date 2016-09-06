@@ -11,3 +11,7 @@ def map_libs(d):
 
 MESATARGET := "${@map_libs(d)}"
 include mesa-${MESATARGET}.inc
+
+# For R-Car E2 temporarily disable Cortex A7 optimisation to avoid upstream 
+# build issue between YP 1.7 gcc toolchain and Mesa 10.1.x releases.
+TARGET_CC_ARCH_remove_r8a7794 = "-mtune=cortex-a7"

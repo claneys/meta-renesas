@@ -17,21 +17,21 @@ SoCs that Renesas build. Layer and board that supports following:
 	  - Renesas Electronics Corporation. Gose (R8A7793)
 	  - Renesas Electronics Corporation. Koelsch (R8A7791)
 	  - Renesas Electronics Corporation. Lager (R8A7790)
-	* meta-rmobile
-	  - Atmark Techno, Inc. Armadillo-800 EVA (R8A7740)
 
 Please see README in the layer directory about the description of the board.
 
 Original BSP image
 =========================
-The meta-renesas layer provides original BSP image. The following 
+The meta-renesas layer provides original BSP image. The following
 	* core-image-x11
 	* core-image-weston
 
-Genivi
-======
+AGL
+===
 
-For details about using this BSP with Genivi platforms, including the Genivi Demo Platform
-and Genivi Baselines, please see the Renesas R-Car links within the Genivi wiki [1]
+This layer has been made to work with AGL project based on work of Cogent Embedded
+and IOTBzh extending features with Porter Expansion board.
 
-[1] http://wiki.projects.genivi.org/index.php/Meta-ivi
+https://gerrit.automotivelinux.org/gerrit/#/admin/projects/AGL/meta-renesas
+https://github.com/CogentEmbedded/meta-renesas/tree/v1.10.0_pext01
+http://elinux.org/R-Car/Boards/Porter:PEXT01
